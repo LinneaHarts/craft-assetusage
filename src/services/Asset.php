@@ -103,7 +103,7 @@ class Asset extends Component
                     if ($layoutElement instanceof CustomField) {
                         $field = $layoutElement->getField();
                         //echo 'Element title: ' . $element->title . PHP_EOL;
-                        if ($element->id == 93646) {
+                        if ($element->title == "How using AI for design can optimize your workflow and provide results") {
                             echo 'Matrix field handle: ' . $field->handle . ' ' . get_class($field) . PHP_EOL;
                         }
                         
