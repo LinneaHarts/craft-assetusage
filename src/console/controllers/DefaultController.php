@@ -8,18 +8,36 @@ use craft\db\Table;
 use yii\console\Controller;
 use yii\console\ExitCode;
 
+use born05\assetusage\services\Asset as AssetService;
+
 /**
  * Controls
  */
 class DefaultController extends Controller
 {
+
+    /**
+     * Handle assetusage/default console commands
+     *
+     * @return mixed
+     */
+    public function actionIndex() {
+
+        $assetService = new AssetService();
+
+        $assetService->storeRedactorAssets();
+        
+        //$this->stdout('Hello World!' . PHP_EOL);
+        return true;
+    }
+
     /**
      * Lists all unused assets.
      * @param string|null $volume The handle of the asset's volume.
      */
     public function actionListUnused(?string $volume = null)
     {
-        $this->stdout('Listing all unused asset ids:' . PHP_EOL);
+        $this->stdout('Listing all unused asset ids!' . PHP_EOL);
 
         $results = $this->getUnusedAssets($volume);
         foreach ($results as $result) {
