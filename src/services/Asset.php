@@ -62,7 +62,7 @@ class Asset extends Component
             //echo 'Found asset: ' . $redactorElement . PHP_EOL;
             $imgArray = $this->_extractFilenames($redactorElement);
             foreach($imgArray as $filename) {
-                echo 'Filename: ' . $filename . PHP_EOL;
+                //echo 'Filename: ' . $filename . PHP_EOL;
                 $img = \craft\elements\Asset::find()->filename($filename)->one();
                 if ($img) {
                     $model = new AssetRelModel();
@@ -82,8 +82,13 @@ class Asset extends Component
         }
     }
 
-    private function _extractAssetsFromMatrix(string $handle) {
-        $elements = Entry::find()->search($handle . ':*')->all();
+    private function _extractAssetsFromMatrix(string $handle, bool $nested = false, $element = null) {
+        echo 'Extracting assets from matrix field ' . $handle . PHP_EOL;
+        if ($nested && $element) {
+            $elements = [$element];
+        } else {
+            $elements = Entry::find()->search($handle . ':*')->all();
+        }
         foreach ($elements as $element) {
             $matrixBlocks = $element->getFieldValue($handle);
             foreach ($matrixBlocks as $block) {
@@ -97,12 +102,18 @@ class Asset extends Component
                 foreach ($tab->getElements() as $layoutElement) {
                     if ($layoutElement instanceof CustomField) {
                         $field = $layoutElement->getField();
+                        //echo 'Element title: ' . $element->title . PHP_EOL;
+                        if ($element->id == 93646) {
+                            echo 'Matrix field handle: ' . $field->handle . ' ' . get_class($field) . PHP_EOL;
+                        }
                         
                         if (get_class($field) == 'craft\\redactor\\Field') {
                             $this->_addAssetRelation($element, $block->getFieldValue($field->handle));
                         } else if (get_class($field) == 'craft\\fields\\Matrix') {
-                            $this->_extractAssetsFromMatrix($field->handle);
+                            echo 'Found nested matrix: ' . $field->handle . PHP_EOL;
+                            $this->_extractAssetsFromMatrix($field->handle, true, $element);
                         } else if (get_class($field) == 'verbb\\supertable\\fields\\SuperTableField') {
+                            echo 'Found nested supertable: ' . $field->handle . PHP_EOL;
                             $this->_extractAssetsFromSupertable($field->id);
                         }
                     }
@@ -113,19 +124,23 @@ class Asset extends Component
     }
 
     private function _extractAssetsFromSupertable(int $fieldId) {
+        echo 'Extracting assets from supertable field ' . $fieldId . PHP_EOL;
         $query = SuperTableBlockElement::find()->fieldId($fieldId);
         $superTableBlocks = $query->all();
         echo 'Found ' . count($superTableBlocks) . ' blocks' . PHP_EOL;
         foreach ($superTableBlocks as $block) {
             $fieldLayout = $block->getFieldLayout();
             foreach ($fieldLayout->getCustomFields() as $field) {
-                echo $field->handle . ' ' . get_class($field) . PHP_EOL;
+                echo $field->handle . ' ' . get_class($field) . PHP_EOL;    
                 if (get_class($field) == 'craft\\redactor\\Field') {
                     $element = $block->getOwner();
                     $this->_addAssetRelation($element, $block->getFieldValue($field->handle));
                 } else if (get_class($field) == 'craft\\fields\\Matrix') {
-                    $this->_extractAssetsFromMatrix($field->handle);
+                    $element = $block->getOwner();
+                    echo 'Found nested matrix: ' . $field->handle . PHP_EOL;
+                    $this->_extractAssetsFromMatrix($field->handle, true, $element);
                 } else if (get_class($field) == 'verbb\\supertable\\fields\\SuperTableField') {
+                    echo 'Found nested supertable: ' . $field->handle . PHP_EOL;
                     $this->_extractAssetsFromSupertable($field->id);
                 }
             }
