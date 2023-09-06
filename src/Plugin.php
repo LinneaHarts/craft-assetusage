@@ -12,6 +12,10 @@ use craft\elements\Asset;
 use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\SetElementTableAttributeHtmlEvent;
+use craft\events\ElementEvent;
+use craft\helpers\ElementHelper;
+use craft\services\Plugins;
+use craft\services\Elements;
 use craft\web\View;
 use yii\base\Event;
 
@@ -69,6 +73,36 @@ class Plugin extends CraftPlugin
                     'elements' => $this->asset->getUsedIn($asset),
                 ]);
             }
+        });
+
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function (PluginEvent $event) {
+                if ($event->plugin === $this) {
+                    // We were just installed, now index all of the assets in redactors
+
+                    $inventoryService = new InventoryService();
+                    Craft::info('Storing Matrix fields', 'matrix-inventory');
+                    $assetService = new AssetService();
+                    $assetService->storeAllRedactorAssets();
+
+                }
+            }
+        );
+
+        Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT, function(ElementEvent $event) {            
+            $element = $event->element;
+            if (ElementHelper::isDraftOrRevision($element)) {
+                return;
+            } else {
+                if (is_a($element, craft\elements\Entry::class) || is_a($element, craft\elements\GlobalSet::class)
+                    || is_a($element, craft\elements\Category::class) || is_a($element, craft\elements\User::class)) {
+                    $assetService = new AssetService();
+                    $assetService->storeRedactorAssets($element);
+                }
+            }
+
         });
     }
 

@@ -8,6 +8,8 @@ use craft\db\Table;
 use yii\console\Controller;
 use yii\console\ExitCode;
 
+use craft\elements\Entry;
+
 use born05\assetusage\services\Asset as AssetService;
 
 /**
@@ -25,10 +27,19 @@ class DefaultController extends Controller
 
         $assetService = new AssetService();
 
-        $assetService->storeRedactorAssets();
+        $assetService->storeAllRedactorAssets();
         
         //$this->stdout('Hello World!' . PHP_EOL);
         return true;
+    }
+
+    public function actionUpdateEntry() {
+        $this->stdout('Updating entry' . PHP_EOL);
+        $element = Entry::find()->id(62)->one();
+        $this->stdout('Entry: ' . $element->title . PHP_EOL);
+        $assetService = new AssetService();
+
+        $assetService->storeRedactorAssets($element);
     }
 
     /**
