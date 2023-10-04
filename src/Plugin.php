@@ -13,6 +13,7 @@ use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\SetElementTableAttributeHtmlEvent;
 use craft\events\ElementEvent;
+use craft\events\PluginEvent;
 use craft\helpers\ElementHelper;
 use craft\services\Plugins;
 use craft\services\Elements;
@@ -34,6 +35,7 @@ class Plugin extends CraftPlugin
      */
     public function init(): void
     {
+
         parent::init();
         self::$plugin = $this;
 
@@ -74,22 +76,6 @@ class Plugin extends CraftPlugin
                 ]);
             }
         });
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed, now index all of the assets in redactors
-
-                    $inventoryService = new InventoryService();
-                    Craft::info('Storing Matrix fields', 'matrix-inventory');
-                    $assetService = new AssetService();
-                    $assetService->storeAllRedactorAssets();
-
-                }
-            }
-        );
 
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT, function(ElementEvent $event) {            
             $element = $event->element;

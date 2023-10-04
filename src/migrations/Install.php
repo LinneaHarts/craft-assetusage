@@ -7,7 +7,7 @@ namespace born05\assetusage\migrations;
 use Craft;
 use craft\config\DbConfig;
 use craft\db\Migration;
-
+use born05\assetusage\services\Asset as AssetService;
 
 class Install extends Migration
 {
@@ -136,6 +136,8 @@ class Install extends Migration
      */
     protected function insertDefaultData()
     {
+        $assetService = new AssetService();
+        $assetService->storeAllRedactorAssets();
     }
 
     /**
